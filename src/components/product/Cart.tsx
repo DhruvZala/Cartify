@@ -23,9 +23,15 @@ const CartPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const isLoggedIn = localStorage.getItem("jwtToken");
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
     const cartData = JSON.parse(sessionStorage.getItem("cart") || "[]");
     setCart(cartData);
-  }, []);
+  }, [navigate]);
 
   const updateQuantity = (id: number, change: number) => {
     const updatedCart = cart

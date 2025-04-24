@@ -11,11 +11,11 @@ import ChangePassword from "./components/auth/ChangePassword";
 const AppRoutes: React.FC = () => {
   const routes = [
     { path: "/login", element: <Login /> },
+    { path: "/registerPage", element: <Register /> },
     { path: "/", element: <ProductPage /> },
     { path: "/productPage", element: <ProductPage /> },
     { path: "/cart", element: <Cart /> },
     { path: "/product/:id", element: <ProductDetailPage /> },
-    { path: "/registerPage", element: <Register /> },
     { path: "/changePassword", element: <ChangePassword /> },
   ];
 

@@ -24,6 +24,12 @@ const ProductDetailPage: React.FC = () => {
   const [isMaxQuantity, setIsMaxQuantity] = useState(false);
 
   useEffect(() => {
+    const isLoggedIn = localStorage.getItem("jwtToken");
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
     axios
       .get(`https://fakestoreapi.com/products/${id}`)
       .then((response) => {
