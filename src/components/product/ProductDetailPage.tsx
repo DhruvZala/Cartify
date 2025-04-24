@@ -21,6 +21,7 @@ const ProductDetailPage: React.FC = () => {
   const [cart, setCart] = useState<Product[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [messages, setMessages] = useState<{ [key: number]: string }>({});
+  const [isMaxQuantity, setIsMaxQuantity] = useState(false);
 
   useEffect(() => {
     axios
@@ -32,7 +33,7 @@ const ProductDetailPage: React.FC = () => {
       .catch((error) => {
         console.error("Error fetching product details:", error);
         setLoading(false);
-        navigate("/"); 
+        navigate("/");
       });
 
     const storedCart = getCartFromStorage();
@@ -40,15 +41,94 @@ const ProductDetailPage: React.FC = () => {
     setCartCount(calculateCartCount(storedCart));
   }, [id, navigate]);
 
+  useEffect(() => {
+    if (product) {
+      const cartItem = cart.find((item) => item.id === product.id);
+      if (cartItem) {
+        setQuantity(cartItem.quantity);
+        if (cartItem.quantity >= 5) {
+          setIsMaxQuantity(true);
+          setMessages({
+            ...messages,
+            [product.id]: "Maximum quantity reached for this item.",
+          });
+        } else {
+          setIsMaxQuantity(false);
+        }
+      }
+    }
+  }, [product, cart, messages]);
+
   const increaseQuantity = () => {
     if (product) {
-      setQuantity((prev) => Math.min(prev + 1, 5));
+      const newQuantity = Math.min(quantity + 1, 5);
+      setQuantity(newQuantity);
+
+      if (newQuantity > 0) {
+        const updatedCart = updateCartItem(cart, product, newQuantity);
+        setCart(updatedCart);
+        setCartCount(calculateCartCount(updatedCart));
+        saveCartToStorage(updatedCart);
+
+        setMessages({
+          ...messages,
+          [product.id]:
+            newQuantity === 5
+              ? "Maximum quantity reached for this item."
+              : "Cart updated successfully!",
+        });
+
+        setTimeout(() => {
+          setMessages({
+            ...messages,
+            [product.id]: "",
+          });
+        }, 3000);
+      }
     }
   };
 
   const decreaseQuantity = () => {
     if (product) {
-      setQuantity((prev) => Math.max(prev - 1, 0));
+      const newQuantity = Math.max(quantity - 1, 0);
+      setQuantity(newQuantity);
+
+      if (newQuantity > 0) {
+        const updatedCart = updateCartItem(cart, product, newQuantity);
+        setCart(updatedCart);
+        setCartCount(calculateCartCount(updatedCart));
+        saveCartToStorage(updatedCart);
+
+        setMessages({
+          ...messages,
+          [product.id]: "Cart updated successfully!",
+        });
+
+        setTimeout(() => {
+          setMessages({
+            ...messages,
+            [product.id]: "",
+          });
+        }, 3000);
+      } else {
+        // Remove item from cart if quantity becomes 0
+        const updatedCart = cart.filter((item) => item.id !== product.id);
+        setCart(updatedCart);
+        setCartCount(calculateCartCount(updatedCart));
+        saveCartToStorage(updatedCart);
+
+        setMessages({
+          ...messages,
+          [product.id]: "Item removed from cart",
+        });
+
+        setTimeout(() => {
+          setMessages({
+            ...messages,
+            [product.id]: "",
+          });
+        }, 3000);
+      }
     }
   };
 
@@ -64,7 +144,7 @@ const ProductDetailPage: React.FC = () => {
         [product.id]:
           quantity === 5
             ? "Maximum quantity reached for this item."
-            : "Item added to cart successfully!",
+            : "Cart updated successfully!",
       });
 
       setTimeout(() => {
@@ -198,12 +278,7 @@ const ProductDetailPage: React.FC = () => {
                       <div className="flex items-center border border-gray-300 rounded-md">
                         <button
                           onClick={decreaseQuantity}
-                          disabled={quantity === 0}
-                          className={`px-3 py-1 text-lg ${
-                            quantity === 0
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-gray-600 hover:bg-gray-100"
-                          }`}
+                          className="px-3 py-1 text-lg text-gray-600 hover:bg-gray-100"
                         >
                           -
                         </button>
@@ -212,9 +287,9 @@ const ProductDetailPage: React.FC = () => {
                         </span>
                         <button
                           onClick={increaseQuantity}
-                          disabled={quantity === 5}
+                          disabled={quantity === 5 || isMaxQuantity}
                           className={`px-3 py-1 text-lg ${
-                            quantity === 5
+                            quantity === 5 || isMaxQuantity
                               ? "text-gray-400 cursor-not-allowed"
                               : "text-gray-600 hover:bg-gray-100"
                           }`}
@@ -240,14 +315,18 @@ const ProductDetailPage: React.FC = () => {
                   <div className="mt-auto pt-8 space-y-4">
                     <button
                       onClick={handleAddToCart}
-                      disabled={quantity === 0}
+                      disabled={quantity === 0 || isMaxQuantity}
                       className={`w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${
-                        quantity === 0
+                        quantity === 0 || isMaxQuantity
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-indigo-600 hover:bg-indigo-700"
                       } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200`}
                     >
-                      {quantity > 0 ? "Update Cart" : "Add to Cart"}
+                      {isMaxQuantity
+                        ? "Maximum Quantity Reached"
+                        : quantity > 0
+                        ? "Update Cart"
+                        : "Add to Cart"}
                     </button>
 
                     <Link

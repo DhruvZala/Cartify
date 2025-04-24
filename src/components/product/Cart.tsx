@@ -3,7 +3,7 @@ import Navbar from "../common/Navbar";
 import Footer from "../common/Footer";
 import { RazorpayPayment } from "../../utils/RazorpayService";
 import { IndianRupee } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Product {
   id: number;
@@ -20,6 +20,7 @@ const CartPage: React.FC = () => {
   const [discountApplied, setDiscountApplied] = useState(false);
   const [invalidCode, setInvalidCode] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const cartData = JSON.parse(sessionStorage.getItem("cart") || "[]");
@@ -91,6 +92,7 @@ const CartPage: React.FC = () => {
         alert(`Payment successful! ID: ${paymentId}`);
 
         sessionStorage.removeItem("cart");
+        navigate("/")
         setCart([]);
       },
       (error: React.SetStateAction<string | null>) => {

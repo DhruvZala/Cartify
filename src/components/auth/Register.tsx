@@ -109,7 +109,7 @@ const Register: React.FC = () => {
         // API Call Delay
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        navigate("/ProductPage");
+        navigate("/Login");
       } catch (error) {
         console.error("Registration error:", error);
         setRegistrationError(
