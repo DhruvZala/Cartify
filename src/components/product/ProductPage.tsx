@@ -45,6 +45,9 @@ const ProductPage: React.FC = () => {
     setCart(storedCart);
     setCartCount(calculateCartCount(storedCart));
   }, []);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   const handleProductClick = (e: React.MouseEvent) => {
     if (!isLoggedIn) {
